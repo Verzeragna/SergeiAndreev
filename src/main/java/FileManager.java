@@ -3,50 +3,87 @@ import org.apache.commons.io.FileUtils;
 import java.io.*;
 import java.nio.file.AccessDeniedException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class FileManager implements FileManagerInterface {
 
-    @Override
-    public void copyFiles(File pathSource, File pathDest) throws IOException {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyMMdd");
-        StringBuilder newPath = new StringBuilder();
-        newPath.append(pathDest).append("\\");
-        String fileName = simpleDateFormat.format(new Date());
-        newPath.append(fileName);
-        File newDir = new File(newPath.toString());
-        newDir.mkdir();
-        FileUtils.copyDirectory(pathSource, newDir);
-    }
+    File newDir;
 
     @Override
-    public void deleteFiles(File pathSource) throws IOException {
-        for (File myFile : pathSource.listFiles()) {
-            if (myFile.isDirectory()) {
-                FileUtils.deleteDirectory(myFile);
-            } else {
-                myFile.delete();
+    public void copyFiles(File pathSource, File pathDest, boolean makeDir) throws IOException {
+        if (makeDir) {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyMMdd");
+            StringBuilder newPath = new StringBuilder();
+            newPath.append(pathDest).append("\\");
+            String fileName = simpleDateFormat.format(new Date());
+            newPath.append(fileName);
+            newDir = new File(newPath.toString());
+            boolean isCreated = newDir.mkdir();
+            if (!isCreated) {
+                throw new IOException("Can not create directory: " + newDir.getName());
             }
+            copyFiles(pathSource, newDir);
+        } else {
+            FileUtils.copyDirectory(pathSource, pathDest);
+        }
+
+    }
+
+    void copyFiles(File pathSource, File pathDest) throws IOException {
+        int i;
+        File[] arrayFiles = pathSource.listFiles();
+        if (arrayFiles != null) {
+            for (i = 0; i < arrayFiles.length; i++) {
+                File fileDest = new File(pathDest.getAbsolutePath() + "\\" + arrayFiles[i].getName());
+                FileUtils.copyFile(arrayFiles[i], fileDest);
+                boolean isDeleted = arrayFiles[i].delete();
+                if (!isDeleted) {
+                    throw new IOException("File can not be deleted: " + arrayFiles[i].getName());
+                }
+            }
+        } else {
+            throw new NullPointerException("No files found!!!");
         }
     }
 
     @Override
-    public void deleteOldBuckup(File pathSource) throws AccessDeniedException {
-        List<File> dirList = new ArrayList<>();
-        if(pathSource.listFiles().length>2) {
-            for (File myFile : pathSource.listFiles()) {
+    public void deleteFiles(File pathSource) throws IOException {
+        File[] arrayFiles = pathSource.listFiles();
+        if (arrayFiles != null) {
+            for (File myFile : arrayFiles) {
                 if (myFile.isDirectory()) {
-                    dirList.add(myFile);
+                    FileUtils.deleteDirectory(myFile);
+                } else {
+                    boolean isDeleted = myFile.delete();
+                    if (!isDeleted) {
+                        throw new IOException("File can not be deleted: " + myFile.getName());
+                    }
                 }
             }
-            Collections.sort(dirList);
-            boolean status = dirList.get(0).delete();
-            if (dirList.size() == 0 || !status) {
-                throw new AccessDeniedException("Unable to access directory");
+        } else {
+            throw new NullPointerException("No files found!!!");
+        }
+    }
+
+    @Override
+    public void deleteOldBuckup(File pathSource) throws AccessDeniedException, IOException {
+        List<File> dirList = new ArrayList<>();
+        File[] arrayFiles = pathSource.listFiles();
+        if (arrayFiles != null) {
+            if (arrayFiles.length > 1) {
+                for (File myFile : arrayFiles) {
+                    if (myFile.isDirectory()) {
+                        dirList.add(myFile);
+                    }
+                }
+                Collections.sort(dirList);
+                FileUtils.deleteDirectory(dirList.get(0));
+                if (dirList.size() == 0 ) {
+                    throw new AccessDeniedException("Unable to access directory: " + "size=" + dirList.size());
+                }
             }
+        } else {
+            throw new NullPointerException("No files found!!!");
         }
     }
 
@@ -57,13 +94,16 @@ public class FileManager implements FileManagerInterface {
         try {
             if (!log.exists()) {
 
-                log.createNewFile();
-                FileWriter nWriter = new FileWriter(log, true);
-                String date = getcurrentDate();
-                nWriter.write(date + " : " + ex.getMessage());
-                nWriter.append("\r\n");
-                nWriter.flush();
-
+                boolean isCreated = log.createNewFile();
+                if (!isCreated) {
+                    System.out.println("Can not create log file!!!");
+                } else {
+                    FileWriter nWriter = new FileWriter(log, true);
+                    String date = getcurrentDate();
+                    nWriter.write(date + " : " + ex.getMessage());
+                    nWriter.append("\r\n");
+                    nWriter.flush();
+                }
             } else {
                 FileWriter nWriter = new FileWriter(log, true);
                 String date = getcurrentDate();
@@ -73,6 +113,7 @@ public class FileManager implements FileManagerInterface {
             }
         } catch (IOException io) {
             io.printStackTrace();
+            System.out.println("Can not write to log file!!!");
         }
     }
 
