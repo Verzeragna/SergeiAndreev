@@ -66,7 +66,7 @@ public class FileManager implements FileManagerInterface {
     }
 
     @Override
-    public void deleteOldBuckup(File pathSource) throws AccessDeniedException, IOException {
+    public void deleteOldBuckup(File pathSource) throws IOException {
         List<File> dirList = new ArrayList<>();
         File[] arrayFiles = pathSource.listFiles();
         if (arrayFiles != null) {
