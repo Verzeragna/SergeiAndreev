@@ -1,2 +1,12 @@
 24.05.20 01:00 : Unable to access directory
 24.05.20 01:04 : Unable to access directory
+04.08.20 02:22 : 2
+04.08.20 02:24 : Destination 'C:\Users\1\Documents\Buckup1CBase\BackupHot\200804' exists but is a directory
+05.08.20 09:29 : Can not create directory: 200805
+18.09.20 10:14 : 4
+18.09.20 10:15 : 4
+18.09.20 10:16 : 4
+18.09.20 10:17 : C:\Users\1\IdeaProjects\Buckup1CBase\mailList.properties (Не удается найти указанный файл)
+18.09.20 10:17 : null
+18.09.20 10:17 : Can not create directory: 200918
+19.09.20 11:10 : Can not create directory: 200919

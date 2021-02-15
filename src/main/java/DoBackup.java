@@ -2,7 +2,7 @@ import java.io.File;
 
 public class DoBackup {
     public static void main(String[] args) {
-        if(args.length==4) {
+        if(args.length==6) {
             CopyMethodsInterface cm = new CopyMethods();
             switch (args[0]) {
                 case "1":
